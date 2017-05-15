@@ -15,13 +15,11 @@ public class DashboardPresenter implements DashboardContract.Presenter {
 
     DashboardPresenter(DashboardContract.View infoView) {
         mView = infoView;
-        Log.w("PRESENTER CALLED", "presenter");
         mView.setPresenter(this);
     }
 
     @Override
     public void addInfo() {
-
     }
 
     @Override
@@ -31,7 +29,6 @@ public class DashboardPresenter implements DashboardContract.Presenter {
 
     @Override
     public void loadInfo() {
-        Log.w("LOAD INFO", "LOADING");
         getInfo();
     }
 
@@ -42,7 +39,6 @@ public class DashboardPresenter implements DashboardContract.Presenter {
         infoList.add("Hello");
         infoList.add("Hello");
         infoList.add("Hello");
-        Log.w("INFO ", "populated");
         processInfo(infoList);
     }
 

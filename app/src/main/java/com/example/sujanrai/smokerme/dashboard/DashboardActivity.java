@@ -1,24 +1,28 @@
 package com.example.sujanrai.smokerme.dashboard;
 
-import android.support.v7.app.AppCompatActivity;
+import android.icu.text.IDNA;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.sujanrai.smokerme.BasePresenter;
 import com.example.sujanrai.smokerme.R;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DashboardActivity extends AppCompatActivity implements DashboardContract.View {
 
-    ListView infoLv;
+
+    RecyclerView infoRv;
     InfoAdapter infoAdapter;
     DashboardContract.Presenter presenter;
     DashboardPresenter dashboardPresenter;
@@ -28,14 +32,24 @@ public class DashboardActivity extends AppCompatActivity implements DashboardCon
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        infoLv = (ListView) findViewById(R.id.infoLv);
-        infoLv.setEmptyView(findViewById(android.R.id.empty));
+        infoRv = (RecyclerView) findViewById(R.id.infoRv);
 
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        infoRv.setLayoutManager(layoutManager);
+        infoRv.setItemAnimator(new DefaultItemAnimator());
+        itemTouchHelper.attachToRecyclerView(infoRv);
         infoAdapter = new InfoAdapter(new ArrayList<String>(0));
+        infoRv.setAdapter(infoAdapter);
 
-        Log.w("BEFORE CALLING:::", "CALLING");
         dashboardPresenter = new DashboardPresenter(this);
     }
+
+    InfoItemListener infoItemListener = new InfoItemListener() {
+        @Override
+        public void onInfoTouch(String info) {
+            Toast.makeText(DashboardActivity.this, "Info Clicked", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -45,7 +59,6 @@ public class DashboardActivity extends AppCompatActivity implements DashboardCon
 
     @Override
     public void showInfo(ArrayList<String> infoList) {
-        Log.w("CALLED", "CALLED");
         infoAdapter.replaceData(infoList);
     }
 
@@ -59,53 +72,78 @@ public class DashboardActivity extends AppCompatActivity implements DashboardCon
         this.presenter = presenter;
     }
 
-    private static class InfoAdapter extends BaseAdapter {
+    private static class InfoAdapter extends RecyclerView.Adapter<InfoAdapter.MyViewHolder> {
 
         private ArrayList<String> infoList;
 
         public InfoAdapter(ArrayList<String> infoList) {
-            setList(infoList);
-        }
-
-        public void replaceData(ArrayList<String> infoList) {
-            setList(infoList);
-            notifyDataSetChanged();
-        }
-
-        private void setList(ArrayList<String> infoList) {
-            this.infoList = infoList;
+            setData(infoList);
         }
 
         @Override
-        public int getCount() {
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
+            return new MyViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(MyViewHolder holder, int position) {
+            holder.bind(infoList.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
             return infoList.size();
         }
 
-        @Override
-        public Object getItem(int position) {
-            return infoList.get(position);
+        public void replaceData(ArrayList<String> infoList) {
+            setData(infoList);
         }
 
-        @Override
-        public long getItemId(int position) {
-            return position;
+        private void setData(ArrayList<String> infoList) {
+            this.infoList = infoList;
+            notifyDataSetChanged();
         }
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-            if (view == null) {
-                LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-                view = layoutInflater.inflate(android.R.layout.simple_list_item_1, parent);
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            private TextView infoTv;
+
+            public MyViewHolder(View itemView) {
+                super(itemView);
+                infoTv = (TextView) itemView.findViewById(android.R.id.text1);
             }
 
-            Log.w("INSIDE ADAPTER", "inside");
-
-            String info = (String) getItem(position);
-
-            ((TextView) view.findViewById(android.R.id.text1)).setText(info);
-
-            return view;
+            public void bind(final String s) {
+                infoTv.setText(s);
+                /*itemView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        infoItemListener.onInfoTouch(s);
+                        return false;
+                    }
+                });*/
+            }
         }
+
     }
+
+    public interface InfoItemListener {
+        void onInfoTouch(String info);
+    }
+
+    ItemTouchHelper.SimpleCallback simpleCallBackItemTouch = new ItemTouchHelper.SimpleCallback(1, ItemTouchHelper.LEFT) {
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            Toast.makeText(DashboardActivity.this, "Swiped", Toast.LENGTH_SHORT).show();
+
+        }
+    };
+
+    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallBackItemTouch);
+
 }

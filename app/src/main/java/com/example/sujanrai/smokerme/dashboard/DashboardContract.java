@@ -12,12 +12,14 @@ import java.util.ArrayList;
 public interface DashboardContract {
 
     interface View extends BaseView<Presenter> {
+
         void showInfo(ArrayList<String> infoList);
 
         void showAddInfo();
     }
 
     interface Presenter extends BasePresenter {
+
         void addInfo();
 
         void deleteInfo();
